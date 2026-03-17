@@ -1,0 +1,23 @@
+# PrestaShop
+/config/config.inc.php
+
+# Dependencias
+/vendor/
+composer.lock
+
+# Logs
+*.log
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables de entorno
+.env
+.env.local
