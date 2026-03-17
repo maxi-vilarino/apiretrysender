@@ -23,12 +23,48 @@ class ApiRetrySender extends Module
     public function install()
     {
         return parent::install()
-            && $this->registerHook('actionGetAdminOrderButtons');
+            && $this->registerHook('actionGetAdminOrderButtons')
+            && $this->createTable();
     }
 
     public function uninstall()
     {
-        return parent::uninstall();
+        return parent::uninstall()
+            && $this->dropTable();
+    }
+
+    private function createTable(): bool
+    {
+        $sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'aldaba_orders_details` (
+            `id_aldaba_order`      INT NOT NULL AUTO_INCREMENT,
+            `id_order`             INT(10) UNSIGNED NOT NULL,
+            `entrega_ayudante`     TINYINT(1) NOT NULL DEFAULT 0,
+            `is_terceros`          TINYINT(1) NOT NULL DEFAULT 0,
+            `restos`               TINYINT(1) NOT NULL DEFAULT 0,
+            `mail_albaran`         TINYINT(1) NOT NULL DEFAULT 0,
+            `observaciones`        TEXT,
+            `payment_method`       VARCHAR(100) NOT NULL DEFAULT \'\',
+            `recargos`             DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
+            `recargo_equivalencia` DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
+            `total_iva`            DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
+            `api_reference`        VARCHAR(50) DEFAULT NULL,
+            PRIMARY KEY (`id_aldaba_order`),
+            UNIQUE KEY `id_order` (`id_order`),
+            CONSTRAINT `fk_aldaba_order`
+                FOREIGN KEY (`id_order`)
+                REFERENCES `' . _DB_PREFIX_ . 'orders` (`id_order`)
+                ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;';
+
+        return \Db::getInstance()->execute($sql);
+    }
+
+
+    private function dropTable(): bool
+    {
+        return \Db::getInstance()->execute(
+            'DROP TABLE IF EXISTS `' . _DB_PREFIX_ . 'aldaba_orders_details`'
+        );
     }
 
     public function hookActionGetAdminOrderButtons(array $params)
