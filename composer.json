@@ -1,0 +1,8 @@
+{
+  "name": "aldaba/apiretrysender",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Apiretrysender\\": "src/"
+    }
+  }
+}

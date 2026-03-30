@@ -41,7 +41,7 @@ class ApiRetrySender extends Module
             `entrega_ayudante`     TINYINT(1) NOT NULL DEFAULT 0,
             `is_terceros`          TINYINT(1) NOT NULL DEFAULT 0,
             `restos`               TINYINT(1) NOT NULL DEFAULT 0,
-            `mail_albaran`         TINYINT(1) NOT NULL DEFAULT 0,
+            `mail_albaran`         VARCHAR(1) NOT NULL DEFAULT \'N\',
             `observaciones`        TEXT,
             `payment_method`       VARCHAR(100) NOT NULL DEFAULT \'\',
             `recargos`             DECIMAL(20,6) NOT NULL DEFAULT 0.000000,

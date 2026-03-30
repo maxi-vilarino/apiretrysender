@@ -2,6 +2,6 @@ apiretrysender_send:
   path: /apiretrysender/send/{orderId}
   methods: [GET]
   defaults:
-    _controller: 'Modules\apiretrysender\Controller\Admin\ApiRetryController::sendAction'
+    _controller: 'Modules\Apiretrysender\Controller\Admin\ApiRetryController::sendAction'
     _legacy_controller: AdminOrders
     _legacy_link: AdminOrders

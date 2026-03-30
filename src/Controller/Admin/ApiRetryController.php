@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\apiretrysender\Controller\Admin;
+namespace Modules\Apiretrysender\Controller\Admin;
 
 use Order;
 use Address;
@@ -60,12 +60,19 @@ class ApiRetryController extends FrameworkBundleAdminController
             // Usar customcheckout para buildApiData y callApi
             $customCheckout = \Module::getInstanceByName('customcheckout');
             $apiData        = $customCheckout->buildApiData($orderData, $cartData);
-            $result         = $customCheckout->callApi('pedidos', 'POST', $apiData);
+            //$result         = $customCheckout->callApi('pedidos', 'POST', $apiData);
+            $result =
+                [
+                    'success' => true,
+                    'data'    => [
+                        'referenciaPedido' => 'REF123456789', // Ejemplo de referencia generada por la API
+                    ],
+                ];
 
             if ($result) {
                 // Guardar referencia generada y cambiar estado del pedido
                 \Db::getInstance()->update('aldaba_orders_details', [
-                    'api_reference' => pSQL($apiData['referenciaPedido']),
+                    'api_reference' => pSQL($result['data']['referenciaPedido']),
                 ], 'id_order = ' . (int) $orderId);
 
                 $history                = new \OrderHistory();
