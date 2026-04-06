@@ -49,15 +49,20 @@ apiretrysender/
 
 ```sql
 CREATE TABLE IF NOT EXISTS `ps_aldaba_orders_details` (
-    `id_aldaba_order`  INT NOT NULL AUTO_INCREMENT,
-    `id_order`         INT(10) UNSIGNED NOT NULL,
-    `entrega_ayudante` TINYINT(1) NOT NULL DEFAULT 0,
-    `is_terceros`      TINYINT(1) NOT NULL DEFAULT 0,
-    `restos`           TINYINT(1) NOT NULL DEFAULT 0,
-    `mail_albaran`     TINYINT(1) NOT NULL DEFAULT 0,
-    `observaciones`    TEXT,
-    `payment_method`   VARCHAR(100) NOT NULL DEFAULT '',
-    `api_reference`    VARCHAR(50) DEFAULT NULL,
+    `id_aldaba_order`      INT(11) NOT NULL AUTO_INCREMENT,
+    `id_order`             INT(10) UNSIGNED NOT NULL,
+    `entrega_ayudante`     TINYINT(1) NOT NULL DEFAULT 0,
+    `is_terceros`          TINYINT(1) NOT NULL DEFAULT 0,
+    `restos`               TINYINT(1) NOT NULL DEFAULT 0,
+    `mail_albaran`         VARCHAR(1) NOT NULL DEFAULT 'N',
+    `observaciones`        TEXT,
+    `payment_method`       VARCHAR(100) NOT NULL DEFAULT '',
+    `recargos`             DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
+    `recargo_equivalencia` DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
+    `total_iva`            DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
+    `api_reference`        VARCHAR(50) DEFAULT NULL,
+    `date_add`             DATETIME NOT NULL,
+    `date_upd`             DATETIME ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id_aldaba_order`),
     UNIQUE KEY `id_order` (`id_order`),
     CONSTRAINT `fk_aldaba_order`
@@ -66,3 +71,22 @@ CREATE TABLE IF NOT EXISTS `ps_aldaba_orders_details` (
         ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 ```
+
+### Campos de la tabla
+
+| Campo                  | Tipo             | Descripción                                               |
+| ---------------------- | ---------------- | --------------------------------------------------------- |
+| `id_aldaba_order`      | INT(11)          | ID único del registro (Auto increment)                    |
+| `id_order`             | INT(10) UNSIGNED | ID del pedido en PrestaShop (FK a ps_orders)              |
+| `entrega_ayudante`     | TINYINT(1)       | Flag indicador de entrega con ayudante (0/1)              |
+| `is_terceros`          | TINYINT(1)       | Flag indicador de pedido de terceros (0/1)                |
+| `restos`               | TINYINT(1)       | Flag indicador de restos (0/1)                            |
+| `mail_albaran`         | VARCHAR(1)       | Envío de albarán por email ('N' por defecto, 'S' para sí) |
+| `observaciones`        | TEXT             | Notas adicionales del pedido                              |
+| `payment_method`       | VARCHAR(100)     | Método de pago utilizado                                  |
+| `recargos`             | DECIMAL(20,6)    | Importe de recargos                                       |
+| `recargo_equivalencia` | DECIMAL(20,6)    | Importe de recargo de equivalencia                        |
+| `total_iva`            | DECIMAL(20,6)    | Total del IVA del pedido                                  |
+| `api_reference`        | VARCHAR(50)      | Referencia retornada por la API                           |
+| `date_add`             | DATETIME         | Fecha y hora de creación del registro                     |
+| `date_upd`             | DATETIME         | Fecha y hora de última actualización (auto)               |
