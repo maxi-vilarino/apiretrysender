@@ -16,6 +16,7 @@ class ApiRetryController extends FrameworkBundleAdminController
         try {
             $order    = new Order($orderId);
             $customer = new Customer($order->id_customer);
+            $idCustomer = $customer->id;
 
             $details = \Db::getInstance()->getRow(
                 'SELECT * FROM `' . _DB_PREFIX_ . 'aldaba_orders_details` WHERE `id_order` = ' . (int) $orderId
@@ -25,7 +26,6 @@ class ApiRetryController extends FrameworkBundleAdminController
                 'SELECT * FROM `' . _DB_PREFIX_ . 'address` WHERE id_address = ' . (int) $order->id_address_delivery
             );
 
-            \PrestaShopLogger::addLog('Address: ' . json_encode($addressData, true), 1);
 
             if (!$details) {
                 throw new Exception('No se encontraron datos extra del pedido.');
@@ -46,7 +46,7 @@ class ApiRetryController extends FrameworkBundleAdminController
                 'payment_method'   => $details['payment_method'],
                 'customer' => [
                     'nombre'    => $addressData['company'],
-                    'email'     => $addressData['email'],
+                    'email'     => $addressData['observaciones'],
                     'att'       => $addressData['att'] ?? '',
                     'telefonos' => $addressData['phone'] ?: $addressData['phone_mobile'],
                     'cp'        => $addressData['postcode'],
@@ -59,16 +59,11 @@ class ApiRetryController extends FrameworkBundleAdminController
 
             $apiData = $this->buildApiData($orderData, $cartData);
             \PrestaShopLogger::addLog('ApiRetrySender API Data: ' . json_encode($apiData, true), 1);
-            //$result  = $this->callApi('pedidos', 'POST', $apiData);
-            // Simulación de respuesta exitosa de la API
-            $result = [
-                'pedido'    => 'PED123456789',
-                'referencia' => 'PED123456789',
-            ];
+            $result  = $this->callApi('pedidos', 'POST', $apiData, $idCustomer);
 
             if ($result) {
                 \Db::getInstance()->update('aldaba_orders_details', [
-                    'api_reference' => pSQL($result['pedido'] ?? $result['referencia'] ?? ''),
+                    'api_reference' => pSQL($result[0]['pedido'] ?? $result[0]['referencia'] ?? ''),
                 ], 'id_order = ' . (int) $orderId);
 
                 $history           = new \OrderHistory();
@@ -91,9 +86,6 @@ class ApiRetryController extends FrameworkBundleAdminController
         return $this->redirectToRoute('admin_orders_view', ['orderId' => $orderId]);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // MÉTODOS COPIADOS DE CUSTOMCHECKOUT
-    // ─────────────────────────────────────────────────────────────
     private function buildApiData($order, $cart)
     {
         $reference    = 'PED' . substr(md5(uniqid()), 0, 9);
@@ -134,12 +126,17 @@ class ApiRetryController extends FrameworkBundleAdminController
         ];
     }
 
-    private function callApi($endpoint, $method, $data = null)
+    private function callApi($endpoint, $method, $data = null, $idCustomer = null)
     {
         $DSG_API_URL = 'http://159.69.206.190:8208/';
         try {
             $client = new \GuzzleHttp\Client();
-            $token  = \Context::getContext()->cookie->__get('dsgApiToken');
+
+            $spyroInfo = $this->getDsgSpyroCuentas($idCustomer);
+            $spyroId = $spyroInfo['spyro_id'] ?? 'No encontrado';
+            $spyroPw = $spyroInfo['spyro_pw'] ?? 'No encontrado';
+
+            $token = $this->getUserToken($spyroId, $spyroPw);
             if (empty($token)) {
                 throw new Exception("Token de autenticación no encontrado");
             }
@@ -153,6 +150,7 @@ class ApiRetryController extends FrameworkBundleAdminController
 
             if ($statusCode == 200) {
                 $decoded = json_decode($body, true);
+                \PrestaShopLogger::addLog('Response API data: ' . json_encode($decoded), 1);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     return $decoded;
                 }
@@ -165,10 +163,39 @@ class ApiRetryController extends FrameworkBundleAdminController
         }
     }
 
+    private function getUserToken($id, $password)
+    {
+        $DSG_API_URL = 'http://159.69.206.190:8208';
+        $client = new \GuzzleHttp\Client();
+        try {
+            $response = $client->request('POST', $DSG_API_URL . '/token', [
+                'form_params' => [
+                    'username' => $id,
+                    'password' => $password,
+                ],
+            ]);
+
+            $data = json_decode($response->getBody(), true);
+            \PrestaShopLogger::addLog('Token obtenido: ' . ($data['access_token'] ? 'Sí' : 'No'), 1);
+            return $data['access_token'] ?? null;
+        } catch (\Exception $e) {
+            \PrestaShopLogger::addLog('Error al obtener token: ' . $e->getMessage(), 3);
+            return null;
+        }
+    }
+
     private function getCodDsgProduct($product_id)
     {
         $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'aldaba_productform_custom_product WHERE id = "' . pSQL($product_id) . '"';
         $row = \Db::getInstance()->getRow($sql);
         return $row ?: null;
+    }
+
+    private function getDsgSpyroCuentas($idCustomer)
+    {
+        $sql = 'SELECT * FROM ' . _DB_PREFIX_ . 'spyro_cuentas 
+                WHERE id_customer = ' . $idCustomer;
+        $result = \Db::getInstance()->getRow($sql);
+        return $result;
     }
 }
