@@ -36,7 +36,7 @@ class ApiRetrySender extends Module
     private function createTable(): bool
     {
         $sql = 'CREATE TABLE IF NOT EXISTS `' . _DB_PREFIX_ . 'aldaba_orders_details` (
-            `id_aldaba_order`      INT NOT NULL AUTO_INCREMENT,
+            `id_aldaba_order`      INT(11) NOT NULL AUTO_INCREMENT,
             `id_order`             INT(10) UNSIGNED NOT NULL,
             `entrega_ayudante`     TINYINT(1) NOT NULL DEFAULT 0,
             `is_terceros`          TINYINT(1) NOT NULL DEFAULT 0,
@@ -48,6 +48,8 @@ class ApiRetrySender extends Module
             `recargo_equivalencia` DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
             `total_iva`            DECIMAL(20,6) NOT NULL DEFAULT 0.000000,
             `api_reference`        VARCHAR(50) DEFAULT NULL,
+            `date_add`             DATETIME NOT NULL,
+            `date_upd`             DATETIME ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (`id_aldaba_order`),
             UNIQUE KEY `id_order` (`id_order`),
             CONSTRAINT `fk_aldaba_order`
