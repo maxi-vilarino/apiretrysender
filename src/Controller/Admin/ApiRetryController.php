@@ -58,7 +58,6 @@ class ApiRetryController extends FrameworkBundleAdminController
             $cartData = ['product_list' => $products];
 
             $apiData = $this->buildApiData($orderData, $cartData);
-            \PrestaShopLogger::addLog('ApiRetrySender API Data: ' . json_encode($apiData, true), 1);
             $result  = $this->callApi('pedidos', 'POST', $apiData, $idCustomer);
 
             if ($result) {
@@ -150,7 +149,6 @@ class ApiRetryController extends FrameworkBundleAdminController
 
             if ($statusCode == 200) {
                 $decoded = json_decode($body, true);
-                \PrestaShopLogger::addLog('Response API data: ' . json_encode($decoded), 1);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     return $decoded;
                 }
@@ -176,7 +174,6 @@ class ApiRetryController extends FrameworkBundleAdminController
             ]);
 
             $data = json_decode($response->getBody(), true);
-            \PrestaShopLogger::addLog('Token obtenido: ' . ($data['access_token'] ? 'Sí' : 'No'), 1);
             return $data['access_token'] ?? null;
         } catch (\Exception $e) {
             \PrestaShopLogger::addLog('Error al obtener token: ' . $e->getMessage(), 3);
