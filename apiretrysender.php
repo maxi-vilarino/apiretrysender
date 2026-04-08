@@ -3,8 +3,6 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-require_once __DIR__ . '/../../modules/customcheckout/customcheckout.php';
-
 class ApiRetrySender extends Module
 {
     public function __construct()
